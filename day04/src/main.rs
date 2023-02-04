@@ -50,21 +50,13 @@ impl fmt::Display for Range {
     }
 }
 
-fn main() {
-    let input_contents =
-        fs::read_to_string("./input.txt").expect("Expected input file at input.txt");
-
-    let mut word = String::new();
+fn iterate_input(input: &String, mut f: impl FnMut(Range, Range) -> ()) {
     let mut elf1_str = String::new();
     let mut elf2_str = String::new();
 
-    let mut elf1: Range;
-    let mut elf2: Range;
+    let mut word = String::new();
 
-    let mut total_full_contains: u32 = 0;
-    let mut total_overlaps: u32 = 0;
-
-    for c in input_contents.chars() {
+    for c in input.chars() {
         if c == ',' {
             elf1_str.push_str(word.as_str());
             word.clear();
@@ -74,17 +66,10 @@ fn main() {
             elf2_str.push_str(word.as_str());
             word.clear();
 
-            elf1 = Range::from(&elf1_str);
-            elf2 = Range::from(&elf2_str);
+            let elf1 = Range::from(&elf1_str);
+            let elf2 = Range::from(&elf2_str);
 
-            //println!("{} - {}", elf1, elf2);
-
-            if Range::mutual_contains(&elf1, &elf2) {
-                total_full_contains += 1;
-            }
-            if Range::mutual_overlap(&elf1, &elf2) {
-                total_overlaps += 1;
-            }
+            f(elf1, elf2);
 
             elf1_str.clear();
             elf2_str.clear();
@@ -93,10 +78,63 @@ fn main() {
 
         word.push(c);
     }
+}
+
+fn get_total_contains(input: &String) -> u32 {
+    let mut total_full_contains: u32 = 0;
+
+    iterate_input(input, |elf1, elf2| {
+        if Range::mutual_contains(&elf1, &elf2) {
+            total_full_contains += 1;
+        }
+    });
+
+    return total_full_contains;
+}
+fn get_total_overlaps(input: &String) -> u32 {
+    let mut total_overlaps: u32 = 0;
+
+    iterate_input(input, |elf1, elf2| {
+        if Range::mutual_overlap(&elf1, &elf2) {
+            total_overlaps += 1;
+        }
+    });
+
+    return total_overlaps;
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::fs;
+
+    #[test]
+    fn part_one() {
+        let input_contents = fs::read_to_string("./test.txt").expect("Expected test file");
+        let total_full_contains: u32 = get_total_contains(&input_contents);
+        assert_eq!(total_full_contains, 2);
+    }
+    #[test]
+    fn part_two() {
+        let input_contents = fs::read_to_string("./test.txt").expect("Expected test file");
+        let total_overlaps: u32 = get_total_overlaps(&input_contents);
+        assert_eq!(total_overlaps, 4);
+    }
+}
+
+fn main() {
+    let input_contents =
+        fs::read_to_string("./input.txt").expect("Expected input file at input.txt");
+
+    let total_full_contains: u32 = get_total_contains(&input_contents);
+    let total_overlaps: u32 = get_total_overlaps(&input_contents);
 
     println!(
-        "Total assignment pairs that fully contain the other: {}",
+        "Total assignment pairs that fully contain the other (part 1): {}",
         total_full_contains
     );
-    println!("Total assignment pairs overlaps: {}", total_overlaps);
+    println!(
+        "Total assignment pairs overlaps (part 2): {}",
+        total_overlaps
+    );
 }
