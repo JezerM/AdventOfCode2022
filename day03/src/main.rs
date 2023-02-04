@@ -28,8 +28,6 @@ fn iterate_for_both(compartment1: &mut String, compartment2: String) -> char {
     compartment1.clear();
     compartment1.push_str(com.as_str());
 
-    //println!("Com: {compartment1}\n");
-
     return iterate_for_both(compartment1, compartment2);
 }
 
@@ -54,7 +52,6 @@ fn get_both_contains(rucksack: &str) -> char {
 
     let found = iterate_for_both(&mut compartment1, compartment2);
 
-    println!("Found: {found}");
     return found;
 }
 
@@ -64,35 +61,24 @@ fn get_badge_contains(rucksack1: &str, rucksack2: &str, rucksack3: &str) -> char
     return iterate_for_badges(rucksack1.to_string(), r2, r3);
 }
 
-fn main() {
-    let input_contents =
-        fs::read_to_string("./input.txt").expect("Expected input file at input.txt");
+fn get_sum_of_priorities(input: &String) -> u32 {
+    let mut rucksack = String::new();
+    let mut total_priority: u32 = 0;
 
-    /*
-     *for c in "vJrwpWtwJgWrhcsFMMfFFhFp".chars() {
-     *    println!("{} - {}", c, get_letter_priority(c));
-     *}
-     */
+    for c in input.chars() {
+        if c == '\n' {
+            let found = get_both_contains(rucksack.as_str());
+            total_priority += get_letter_priority(found);
+            rucksack.clear();
+            continue;
+        }
+        rucksack.push(c);
+    }
 
-    /*
-     *    let mut rucksack = String::new();
-     *    let mut total_priority: u32 = 0;
-     *
-     *    for c in input_contents.chars() {
-     *        if c == '\n' {
-     *            let found = get_both_contains(rucksack.as_str());
-     *            let priority = get_letter_priority(found);
-     *            total_priority += priority;
-     *            rucksack.clear();
-     *            continue;
-     *        }
-     *
-     *        rucksack.push(c);
-     *    }
-     *
-     *    println!("Total priority: {}", total_priority);
-     */
+    return total_priority;
+}
 
+fn get_group_sum_priorities(input: &String) -> u32 {
     let mut rucksack = String::new();
     let mut total_priority: u32 = 0;
 
@@ -100,7 +86,7 @@ fn main() {
     let mut elf2 = String::new();
     let mut elf3 = String::new();
 
-    for c in input_contents.chars() {
+    for c in input.chars() {
         if c == '\n' {
             if elf1.is_empty() {
                 elf1.push_str(rucksack.as_str());
@@ -113,12 +99,8 @@ fn main() {
                 rucksack.clear();
                 continue;
             }
-            //let found = get_both_contains(rucksack.as_str());
             let found = get_badge_contains(elf1.as_str(), elf2.as_str(), elf3.as_str());
-            let priority = get_letter_priority(found);
-            println!("{elf1} - {elf2} - {elf3}");
-            println!("\tFound: {found} - {priority}");
-            total_priority += priority;
+            total_priority += get_letter_priority(found);
             rucksack.clear();
             elf1.clear();
             elf2.clear();
@@ -128,23 +110,42 @@ fn main() {
 
         rucksack.push(c);
     }
+    return total_priority;
+}
 
-    println!("Total priority: {}", total_priority);
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::fs;
 
-    /*
-     *    let uwu = "CvNPsrfrjvwwfsjwsrNlgDzzBmgmNhlNBHgg
-     *JVmdMJmcMTSqVlnlnnzBHBGg
-     *SmLqSSWqbcbbWqJqqFcTJfPwPwtwWCfrrPrsQvQZZf
-     *";
-     *
-     *    let mut splitted = uwu.lines();
-     *
-     *    let found = get_badge_contains(
-     *        splitted.next().unwrap(),
-     *        splitted.next().unwrap(),
-     *        splitted.next().unwrap(),
-     *    );
-     *
-     *    println!("Found: {found}");
-     */
+    #[test]
+    fn part_one() {
+        let input_contents = fs::read_to_string("./test.txt").expect("Expected test file");
+        let sum = get_sum_of_priorities(&input_contents);
+        assert_eq!(sum, 157);
+    }
+
+    #[test]
+    fn part_two() {
+        let input_contents = fs::read_to_string("./test.txt").expect("Expected test file");
+        let sum = get_group_sum_priorities(&input_contents);
+        assert_eq!(sum, 70);
+    }
+}
+
+fn main() {
+    let input_contents =
+        fs::read_to_string("./input.txt").expect("Expected input file at input.txt");
+
+    let sum_priorities = get_sum_of_priorities(&input_contents);
+    let group_sum_priorities = get_group_sum_priorities(&input_contents);
+
+    println!(
+        "Rucksack sum of item priorities (part 1): {}",
+        sum_priorities
+    );
+    println!(
+        "Rucksack sum of item priorities by group (part 2): {}",
+        group_sum_priorities
+    );
 }
